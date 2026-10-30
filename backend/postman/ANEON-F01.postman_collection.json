@@ -1,0 +1,181 @@
+{
+  "info": {
+    "_postman_id": "df44de38-f010-4c30-a001-000000000001",
+    "name": "ANEON - F01 Quản lý mặt bằng",
+    "description": "Collection test F01 với profile dev và HTTP Basic.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      { "key": "username", "value": "{{username}}", "type": "string" },
+      { "key": "password", "value": "{{password}}", "type": "string" }
+    ]
+  },
+  "event": [{
+    "listen": "prerequest",
+    "script": {
+      "type": "text/javascript",
+      "exec": [
+        "if (!pm.collectionVariables.get('runSuffix')) {",
+        "  pm.collectionVariables.set('runSuffix', Date.now().toString().slice(-8));",
+        "}"
+      ]
+    }
+  }],
+  "item": [
+    {
+      "name": "01 - Danh mục",
+      "item": [
+        {
+          "name": "Danh sách khu vực",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/f01/catalogs/zones" }
+        },
+        {
+          "name": "Danh sách ngành hàng",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/f01/catalogs/categories" }
+        }
+      ]
+    },
+    {
+      "name": "02 - Mặt bằng",
+      "item": [
+        {
+          "name": "Tạo mặt bằng",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                "const body = pm.response.json();",
+                "pm.environment.set('premiseId', body.data.id);",
+                "pm.environment.set('premiseVersion', body.data.version);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"MB-{{runSuffix}}\",\n  \"name\": \"Mặt bằng Postman\",\n  \"zoneId\": \"{{zoneId}}\",\n  \"totalArea\": 150.50,\n  \"type\": \"CUA_HANG\",\n  \"locationId\": \"{{locationId}}\",\n  \"description\": \"Tạo từ Postman\"\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/f01/premises"
+          }
+        },
+        {
+          "name": "Danh sách mặt bằng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/f01/premises?page=0&size=20&sort=createdAt,desc"
+          }
+        },
+        {
+          "name": "Chi tiết mặt bằng",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                "pm.environment.set('premiseVersion', pm.response.json().data.version);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/f01/premises/{{premiseId}}"
+          }
+        },
+        {
+          "name": "Đổi trạng thái mặt bằng",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                "pm.environment.set('premiseVersion', pm.response.json().data.version);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"BAO_TRI\",\n  \"reason\": \"Kiểm thử Postman\",\n  \"version\": {{premiseVersion}}\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/f01/premises/{{premiseId}}/status"
+          }
+        },
+        {
+          "name": "Kiểm tra mã mặt bằng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/f01/premises/code-availability?code=MB-NEW"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Cửa hàng",
+      "item": [
+        {
+          "name": "Tạo cửa hàng",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+                "pm.environment.set('storeId', pm.response.json().data.id);"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"CH-{{runSuffix}}\",\n  \"name\": \"Cửa hàng Postman\",\n  \"premiseId\": \"{{premiseId}}\",\n  \"area\": 50.25,\n  \"categoryId\": \"{{categoryId}}\",\n  \"locationId\": \"{{locationId}}\",\n  \"status\": \"CHO_THUE\",\n  \"operatingHours\": \"09:00-22:00\",\n  \"description\": \"Tạo từ Postman\",\n  \"publicVisible\": true\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/f01/stores"
+          }
+        },
+        {
+          "name": "Danh sách cửa hàng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/f01/stores?premiseId={{premiseId}}&page=0&size=20"
+          }
+        },
+        {
+          "name": "Chi tiết cửa hàng",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/f01/stores/{{storeId}}" }
+        }
+      ]
+    },
+    {
+      "name": "04 - Lịch sử",
+      "item": [
+        {
+          "name": "Lịch sử mặt bằng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/f01/history?targetType=MAT_BANG&targetId={{premiseId}}&page=0&size=20"
+          }
+        },
+        {
+          "name": "Lịch sử cửa hàng",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/f01/history?targetType=CUA_HANG&targetId={{storeId}}&page=0&size=20"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [{ "key": "runSuffix", "value": "" }]
+}

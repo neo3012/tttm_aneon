@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+  flyway:
+    locations: classpath:db/migration,classpath:db/dev
+    baseline-on-migrate: true
+    baseline-version: 1
+    out-of-order: true
+
+logging:
+  level:
+    com.company.aneon: DEBUG
+
+aneon:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+  f10:
+    qr-secret: ${F10_QR_SECRET:local-dev-only-change-me-32-bytes}
+
+# Local-only profile. Override these environment variables before sharing a dev environment:
+# ANEON_DEV_USERNAME, ANEON_DEV_PASSWORD, DB_URL, DB_USERNAME, DB_PASSWORD.
